@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>路径绘制</title>
+		<style>
+			body {
+				margin: 0;
+				padding: 0;
+				overflow: hidden;
+			}
+
+			.btn-default {
+				padding-left: 5px;
+				padding-right: 5px;
+				height: 30px;
+				border: 1px solid #ccc;
+				color: #333;
+				background-color: #fff;
+				line-height: 30px;
+				font-size: 14px;
+				border-radius: 3px;
+				cursor: pointer;
+			}
+			#indoormap {
+				position: absolute;
+				left: 0;
+				top: 0;
+				right: 0;
+				bottom: 0;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="indoormap"></div>
+
+		<div style="position: absolute; left: 100px; top: 50px;">
+			<button id="draw" class="btn-default">绘制模式(q)</button>
+			<button id="alter" class="btn-default">修改模式(w)</button>
+			<button id="undo" class="btn-default">撤销(z)</button>
+			<button id="merge" class="btn-default">合并选中结点(m)</button>
+			<button id="delete" class="btn-default">删除选中(x)</button>
+			<button id="clear" class="btn-default">清除画板</button>
+			<button id="export" class="btn-default">导出</button>
+		</div>
+
+		<script src="./AirocovMap.js"></script>
+		<script src="./RouteTool.js"></script>
+
+		<script>
+			console.log(RouteTool);
+			window.onload = function () {
+				var routeTool = new RouteTool({
+					container: document.getElementById('indoormap'),
+					// nodeImg: 'img/circle.png',
+					nodeSize: 1, //结点尺寸
+					lineWidth: 4, // 线宽
+					height: 2, // 标注高度
+					nodeColor: '#F00', // 结点颜色
+					focusNodeColor: '#36F', // 结点聚焦颜色
+					selectNodeColor: '#33F', // 节点选中颜色
+					lineColor: '#F00', //线颜色
+					focusLineColor: '#36F', //线聚焦色
+					selectLineColor: '#33F', //线选中色
+					selectLineMaxDistance: 5, // 选中线段最小像素距离 4px
+					mergeNodeMaxDistance: 20, // 允许合并结点的最小间距 10cm
+					shortcut: {
+						// 快捷键
+						draw: 'q', // 绘制模式
+						alter: 'w', // 修改模式
+						undo: 'z', // 撤销
+						merge: 'm', // 合并
+						delete: 'x', // 删除
+					},
+					grid: {
+						size: 200,
+						divisions: 40,
+					},
+					onReady: function () {
+						// 开启路径绘制
+						routeTool.startRoute();
+
+						// 生成随机路径
+						routeTool.fromJSON(routeTool.createRandomRoute(5, 40, 80));
+
+						var drawBtn = document.getElementById('draw');
+						var alterBtn = document.getElementById('alter');
+						var undoBtn = document.getElementById('undo');
+						var mergeBtn = document.getElementById('merge');
+						var deleteBtn = document.getElementById('delete');
+						var clearBtn = document.getElementById('clear');
+						var exportBtn = document.getElementById('export');
+
+						drawBtn.onclick = function () {
+							routeTool.onkeydown({key: routeTool.options.shortcut.draw});
+						};
+
+						alterBtn.onclick = function () {
+							routeTool.onkeydown({key: routeTool.options.shortcut.alter});
+						};
+
+						mergeBtn.onclick = function () {
+							routeTool.onkeydown({key: routeTool.options.shortcut.merge});
+						};
+
+						undoBtn.onclick = function () {
+							routeTool.onkeydown({key: routeTool.options.shortcut.undo});
+						};
+
+						deleteBtn.onclick = function () {
+							routeTool.onkeydown({key: routeTool.options.shortcut.delete});
+						};
+
+						clearBtn.onclick = function () {
+							routeTool.clearRoute(); // 清除路径
+							routeTool.startRoute();
+						};
+
+						exportBtn.onclick = function () {
+							var route = routeTool.exportRoute(); // 导出的路径数据
+
+							if (route) {
+								saveString(JSON.stringify(route), 'route.json');
+							}
+						};
+					},
+				});
+
+				var link = document.createElement('a');
+
+				function save(blob, filename) {
+					link.href = URL.createObjectURL(blob);
+					link.download = filename || 'data.json';
+					link.dispatchEvent(new MouseEvent('click'));
+				}
+
+				function saveString(text, filename) {
+					save(
+						new Blob([text], {
+							type: 'text/plain',
+						}),
+						filename
+					);
+				}
+
+				window.routeTool = routeTool;
+			};
+		</script>
+	</body>
+</html>
